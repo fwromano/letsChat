@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Speech Recognition</title>
+    <style>
+      body {
+        background-color: #f0f0f0;
+        font-family: "Arial", sans-serif;
+        padding: 20px;
+        color: #333;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 18px;
+        border: none;
+        color: white;
+        cursor: pointer;
+        background-color: #007bff;
+        transition: background-color 0.3s ease;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      #toggleButton.recording {
+        background-color: #ff0000;
+      }
+      canvas {
+        width: 100%;
+        height: 100px;
+        display: block;
+        margin-top: 20px;
+      }
+      @media (max-width: 600px) {
+        button {
+          width: 100%;
+          font-size: 16px;
+        }
+        canvas {
+          height: 80px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button id="toggleButton" aria-label="Start or stop recording">
+      Start Listening
+    </button>
+    <p id="status">Press the button to start recording...</p>
+    <p id="transcription"></p>
+    <canvas id="visualizer" aria-label="Audio visualization"></canvas>
+    <script>
+      let isRecording = false;
+      let mediaRecorder;
+      let audioChunks = [];
+      let audioContext, analyser, dataArray, bufferLength;
+
+      const statusDisplay = document.getElementById("status");
+      const transcriptionDisplay = document.getElementById("transcription");
+      const toggleButton = document.getElementById("toggleButton");
+      const canvas = document.getElementById("visualizer");
+      const canvasCtx = canvas.getContext("2d");
+
+      function visualize(stream) {
+        if (!audioContext) {
+          audioContext = new AudioContext();
+        }
+        const source = audioContext.createMediaStreamSource(stream);
+        analyser = audioContext.createAnalyser();
+        source.connect(analyser);
+        analyser.fftSize = 2048;
+        bufferLength = analyser.frequencyBinCount;
+        dataArray = new Uint8Array(bufferLength);
+
+        function draw() {
+          requestAnimationFrame(draw);
+          analyser.getByteTimeDomainData(dataArray);
+
+          canvasCtx.fillStyle = "rgb(240, 240, 240)";
+          canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+          canvasCtx.lineWidth = 2;
+          canvasCtx.strokeStyle = "rgb(0, 0, 0)";
+
+          canvasCtx.beginPath();
+
+          let sliceWidth = (canvas.width * 1.0) / bufferLength;
+          let x = 0;
+
+          for (let i = 0; i < bufferLength; i++) {
+            let v = dataArray[i] / 128.0;
+            let y = (v * canvas.height) / 2;
+
+            if (i === 0) {
+              canvasCtx.moveTo(x, y);
+            } else {
+              canvasCtx.lineTo(x, y);
+            }
+
+            x += sliceWidth;
+          }
+
+          canvasCtx.lineTo(canvas.width, canvas.height / 2);
+          canvasCtx.stroke();
+        }
+
+        draw();
+      }
+
+      toggleButton.addEventListener("click", function () {
+        if (!isRecording) {
+          navigator.mediaDevices
+            .getUserMedia({ audio: true })
+            .then((stream) => {
+              mediaRecorder = new MediaRecorder(stream);
+              mediaRecorder.start();
+              audioChunks = [];
+              statusDisplay.textContent = "Recording... Speak now.";
+              toggleButton.classList.add("recording");
+              visualize(stream);
+
+              mediaRecorder.addEventListener("dataavailable", (event) => {
+                audioChunks.push(event.data);
+              });
+
+              mediaRecorder.addEventListener("stop", () => {
+                statusDisplay.textContent = "Recording stopped. Processing...";
+                toggleButton.disabled = true; // Disable the button while processing
+                const audioBlob = new Blob(audioChunks);
+                const formData = new FormData();
+                formData.append("audio", audioBlob);
+
+                fetch("/transcribe", {
+                  method: "POST",
+                  body: formData,
+                })
+                  .then((response) => response.json())
+                  .then((data) => {
+                    transcriptionDisplay.textContent = data.text;
+                    statusDisplay.textContent =
+                      "Transcription complete. Start a new recording or review the text below.";
+                    toggleButton.classList.remove("recording");
+                    toggleButton.disabled = false; // Re-enable the button after transcription
+                  })
+                  .catch((error) => {
+                    console.error("Error:", error);
+                    statusDisplay.textContent =
+                      "Error processing transcription. Please try again.";
+                    toggleButton.classList.remove("recording");
+                    toggleButton.disabled = false; // Re-enable the button after handling the error
+                  });
+              });
+
+              this.textContent = "Stop Listening";
+              isRecording = true;
+            })
+            .catch((error) => {
+              statusDisplay.textContent =
+                "Failed to start recording. Please ensure the microphone is accessible.";
+              console.error("Error accessing the microphone:", error);
+              toggleButton.classList.remove("recording");
+            });
+        } else {
+          mediaRecorder.stop();
+          this.textContent = "Start Listening";
+          isRecording = false;
+          statusDisplay.textContent = "Stopping the recording...";
+        }
+      });
+    </script>
+  </body>
+</html>

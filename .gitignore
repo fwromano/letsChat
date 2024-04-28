@@ -1,0 +1,5 @@
+/.notebook
+/.vscode
+/__pycache__
+/lib
+/venv
