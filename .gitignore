@@ -1,5 +1,11 @@
-/.notebook
-/.vscode
-/__pycache__
-/lib
-/venv
+ # Ignore everything
+*
+
+# But not these files...
+!app.py
+!templates/index.html
+!requirements.txt
+!README.md
+
+# Additionally, ignore all other directories
+*/
