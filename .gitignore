@@ -6,6 +6,10 @@
 !templates/index.html
 !requirements.txt
 !README.md
+!groq_agent.py
+!local_agent.py
+!static/css/styles.css
+!static/js/script.js
 
 # Additionally, ignore all other directories
 */
