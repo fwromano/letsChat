@@ -12,7 +12,7 @@ import tempfile
 # Agents
 # default is local agent on ollama
 # options are Local, groq, claude, and openai
-preferred_agent = "openai"
+preferred_agent = "groq"
 match preferred_agent:
     case "local":
         Agent = LocalAgent

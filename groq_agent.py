@@ -21,7 +21,7 @@ class Agent:
                 # how it should behave throughout the conversation.
                 {
                     "role": "system",
-                    "content": "you are a wise ai sage. you respond in markdown format. "
+                    "content": "you are a wise ai sage. you respond in a concise manner. "
                 },
                 # Set a user message for the assistant to respond to.
                 {
