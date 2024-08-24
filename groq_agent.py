@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 import os
 
 
-# local agent via ollama 
 class Agent:
     def __init__(self):
         # Initialize with a model if provided
@@ -37,8 +36,7 @@ class Agent:
             # The maximum number of tokens to generate. Requests can use up to
             # 32,768 tokens shared between prompt and completion.
             max_tokens=100, #1024,
-            # If set, partial message deltas will be sent.
-            stream=True,
+
         )
 
         # Print the completion returned by the LLM.

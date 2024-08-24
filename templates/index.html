@@ -1,21 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Speech Recognition</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/styles.css') }}"
-    />
-  </head>
-  <body>
-    <button id="toggleButton" aria-label="Start or stop recording">
-      Start Listening
-    </button>
-    <p id="status">Press the button to start recording...</p>
-    <p id="transcription"></p>
-    <p id="agentResponse"></p>
-    <canvas id="visualizer" aria-label="Audio visualization"></canvas>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Transcription and Text Input</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        button { margin: 10px 0; padding: 10px; }
+        textarea { width: 100%; height: 100px; margin-bottom: 10px; }
+        #visualizer { border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Audio Transcription and Text Input</h1>
+    
+    <div>
+        <button id="startRecording">Start Recording</button>
+        <button id="stopRecording" disabled>Stop Recording</button>
+    </div>
+    
+    <canvas id="visualizer" width="700" height="100"></canvas>
+    
+    <textarea id="textInput" placeholder="Type here or see transcription here..."></textarea>
+    
+    <button id="submitText">Submit Text</button>
+
+    <div id="status"></div>
+    <div id="agentResponse"></div>
+
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-  </body>
+</body>
 </html>
